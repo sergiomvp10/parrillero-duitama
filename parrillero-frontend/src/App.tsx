@@ -550,6 +550,10 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const [passMsg, setPassMsg] = useState("");
   const [passError, setPassError] = useState("");
 
+  // Export
+  const [exporting, setExporting] = useState(false);
+  const [exportMsg, setExportMsg] = useState("");
+
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
@@ -636,6 +640,21 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
       setTimeout(() => { setShowChangePass(false); setPassMsg(""); }, 2000);
     } catch (err: unknown) {
       setPassError(err instanceof Error ? err.message : "Error");
+    }
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    setExportMsg("");
+    try {
+      await api.exportarRegistros(filtroEstado || undefined);
+      setExportMsg("Archivo CSV descargado exitosamente");
+      setTimeout(() => setExportMsg(""), 3000);
+    } catch {
+      setExportMsg("Error al exportar datos");
+      setTimeout(() => setExportMsg(""), 3000);
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -751,7 +770,19 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
             <span className="text-sm text-gray-500 self-center">
               Mostrando {registros.length} de {total} registros
             </span>
+            <button
+              onClick={handleExport}
+              disabled={exporting}
+              className="ml-auto bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-2"
+            >
+              {exporting ? "Exportando..." : "Descargar CSV"}
+            </button>
           </div>
+          {exportMsg && (
+            <div className={`mb-4 p-3 rounded text-sm ${exportMsg.includes("Error") ? "bg-red-50 border-l-4 border-red-400 text-red-800" : "bg-green-50 border-l-4 border-green-400 text-green-800"}`}>
+              {exportMsg}
+            </div>
+          )}
 
           {loading ? (
             <div className="text-center py-8 text-gray-500">Cargando...</div>
