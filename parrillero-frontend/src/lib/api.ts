@@ -146,3 +146,21 @@ export async function obtenerEstadisticas() {
   if (!res.ok) throw new Error("Error al obtener estadisticas");
   return res.json();
 }
+
+// Exportar datos
+export async function exportarRegistros(estado?: string) {
+  let url = `${API_URL}/api/exportar?formato=csv`;
+  if (estado) url += `&estado=${estado}`;
+  const res = await fetch(url, { headers: authHeaders() });
+  if (!res.ok) throw new Error("Error al exportar registros");
+  const blob = await res.blob();
+  const downloadUrl = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = downloadUrl;
+  const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, "");
+  a.download = `registros_parrillero_${timestamp}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(downloadUrl);
+}

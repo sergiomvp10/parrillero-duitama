@@ -1,12 +1,14 @@
 from fastapi import FastAPI, Depends, HTTPException, Query, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 import aiosqlite
 import os
 import math
+import csv
+import io
 
 from app.database import get_db, init_db, DB_DIR
 from app.models import (
@@ -461,3 +463,64 @@ async def get_uploaded_file(filename: str):
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Archivo no encontrado")
     return FileResponse(file_path)
+
+
+# ============ EXPORT DATA ============
+
+@app.get("/api/exportar")
+async def exportar_registros(
+    formato: str = Query("csv", pattern="^(csv)$"),
+    estado: Optional[str] = None,
+    current_user: dict = Depends(get_current_user),
+    db: aiosqlite.Connection = Depends(get_db)
+):
+    now = datetime.now(timezone.utc).isoformat()
+    await db.execute(
+        "UPDATE registros SET estado = 'VENCIDO' WHERE estado = 'VIGENTE' AND fecha_vencimiento IS NOT NULL AND fecha_vencimiento < ?",
+        (now,)
+    )
+    await db.commit()
+
+    if estado:
+        cursor = await db.execute(
+            "SELECT * FROM registros WHERE estado = ? ORDER BY id DESC",
+            (estado,)
+        )
+    else:
+        cursor = await db.execute("SELECT * FROM registros ORDER BY id DESC")
+
+    registros = await cursor.fetchall()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "ID", "Nombre", "Apellido", "Cedula", "Genero", "Fecha Nacimiento",
+        "Placa", "Motivo", "Descripcion", "Estado", "Fecha Registro", "Fecha Vencimiento"
+    ])
+
+    for reg in registros:
+        reg_dict = dict(reg)
+        writer.writerow([
+            reg_dict.get("id", ""),
+            reg_dict.get("conductor_nombre", ""),
+            reg_dict.get("conductor_apellido", ""),
+            reg_dict.get("cedula", ""),
+            reg_dict.get("genero", ""),
+            reg_dict.get("fecha_nacimiento", ""),
+            reg_dict.get("placa", ""),
+            reg_dict.get("motivo", ""),
+            reg_dict.get("descripcion", ""),
+            reg_dict.get("estado", ""),
+            reg_dict.get("fecha_registro", ""),
+            reg_dict.get("fecha_vencimiento", ""),
+        ])
+
+    output.seek(0)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"registros_parrillero_{timestamp}.csv"
+
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
