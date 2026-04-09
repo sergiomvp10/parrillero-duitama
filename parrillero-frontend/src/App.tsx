@@ -66,12 +66,9 @@ function Header() {
           <div className="flex items-center gap-3">
             <div className="w-16 h-16 flex items-center justify-center">
               <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Escudo_de_Duitama.svg/200px-Escudo_de_Duitama.svg.png"
+                src="/escudo-duitama.png"
                 alt="Escudo de Duitama"
                 className="h-14 w-auto"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
               />
             </div>
           </div>
@@ -80,18 +77,18 @@ function Header() {
               Alcaldia Municipal de Duitama
             </h1>
             <p className="text-xs md:text-sm text-gray-600">
-              Secretaria de Gobierno - Control de Movilidad
+              Registro de Excepciones - Circulacion con Parrillero
+            </p>
+            <p className="text-xs md:text-sm font-semibold text-green-800">
+              Secretaria De Gobierno
             </p>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-16 h-16 flex items-center justify-center">
               <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Polic%C3%ADa_Nacional_de_Colombia.svg/200px-Polic%C3%ADa_Nacional_de_Colombia.svg.png"
+                src="/policia-nacional.png"
                 alt="Policia Nacional"
                 className="h-14 w-auto"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
               />
             </div>
           </div>
