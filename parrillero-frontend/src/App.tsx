@@ -229,7 +229,7 @@ function SolicitarTab() {
       )}
 
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-sm border space-y-4">
-        <h3 className="text-lg font-semibold text-black border-b pb-2">Datos del Conductor</h3>
+        <h3 className="text-lg font-semibold text-black pb-2">Datos del Conductor</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Conductor *</label>
@@ -279,7 +279,7 @@ function SolicitarTab() {
           </div>
         </div>
 
-        <h3 className="text-lg font-semibold text-black border-b pb-2 pt-2">Datos del Parrillero (Acompanante)</h3>
+        <h3 className="text-lg font-semibold text-black pb-2 pt-2">Datos del Parrillero (Acompanante)</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Parrillero *</label>
@@ -318,7 +318,7 @@ function SolicitarTab() {
           />
         </div>
 
-        <h3 className="text-lg font-semibold text-black border-b pb-2 pt-2">Datos de la Motocicleta</h3>
+        <h3 className="text-lg font-semibold text-black pb-2 pt-2">Datos de la Motocicleta</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Placa *</label>
@@ -367,7 +367,7 @@ function SolicitarTab() {
           />
         </div>
 
-        <h3 className="text-lg font-semibold text-black border-b pb-2 pt-2">Motivo de la Excepcion</h3>
+        <h3 className="text-lg font-semibold text-black pb-2 pt-2">Motivo de la Excepcion</h3>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Motivo *</label>
           <select
