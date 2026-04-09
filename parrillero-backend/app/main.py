@@ -1,14 +1,20 @@
-from fastapi import FastAPI, Depends, HTTPException, Query, UploadFile, File
+from fastapi import FastAPI, Depends, HTTPException, Query, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 import aiosqlite
 import os
 import math
+import csv
+import io
 
+from pathlib import Path
 from app.database import get_db, init_db, DB_DIR
+
+STATIC_DIR = Path(__file__).parent.parent / "static"
 from app.models import (
     UserLogin, ChangePassword, TokenResponse, RegistroCreate, RegistroResponse,
     RegistroUpdate, ConsultaResponse, DecretoResponse, DecretoUpdate,
@@ -150,8 +156,8 @@ async def crear_registro(data: RegistroCreate, db: aiosqlite.Connection = Depend
 
     cursor = await db.execute(
         """INSERT INTO registros 
-        (conductor_nombre, conductor_apellido, cedula, genero, fecha_nacimiento, placa, motivo, descripcion, estado, acepta_politica_datos) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDIENTE', ?)""",
+        (conductor_nombre, conductor_apellido, cedula, genero, fecha_nacimiento, placa, motivo, descripcion, estado, acepta_politica_datos, parrillero_nombre, parrillero_apellido, cedula_parrillero, moto_marca, moto_anio, moto_color) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDIENTE', ?, ?, ?, ?, ?, ?, ?)""",
         (
             data.conductor_nombre.strip(),
             data.conductor_apellido.strip(),
@@ -161,7 +167,13 @@ async def crear_registro(data: RegistroCreate, db: aiosqlite.Connection = Depend
             placa_upper,
             data.motivo,
             data.descripcion,
-            1 if data.acepta_politica_datos else 0
+            1 if data.acepta_politica_datos else 0,
+            (data.parrillero_nombre or "").strip(),
+            (data.parrillero_apellido or "").strip(),
+            (data.cedula_parrillero or "").strip(),
+            (data.moto_marca or "").strip(),
+            (data.moto_anio or "").strip(),
+            (data.moto_color or "").strip(),
         )
     )
     await db.commit()
@@ -294,9 +306,13 @@ async def eliminar_registro(
 
 @app.get("/api/consulta")
 async def consulta_publica(
-    placa: str = Query(..., min_length=1),
+    placa: Optional[str] = None,
+    cedula: Optional[str] = None,
     db: aiosqlite.Connection = Depends(get_db)
 ):
+    if not placa and not cedula:
+        raise HTTPException(status_code=400, detail="Debe proporcionar placa o cedula para consultar")
+
     now = datetime.now(timezone.utc).isoformat()
     await db.execute(
         "UPDATE registros SET estado = 'VENCIDO' WHERE estado = 'VIGENTE' AND fecha_vencimiento IS NOT NULL AND fecha_vencimiento < ?",
@@ -304,35 +320,56 @@ async def consulta_publica(
     )
     await db.commit()
 
-    placa_upper = placa.upper().strip()
-    cursor = await db.execute(
-        "SELECT conductor_nombre, conductor_apellido, cedula, placa, estado, fecha_registro, fecha_vencimiento FROM registros WHERE placa = ? ORDER BY id DESC",
-        (placa_upper,)
-    )
+    if placa:
+        search_val = placa.upper().strip()
+        cursor = await db.execute(
+            "SELECT conductor_nombre, conductor_apellido, cedula, placa, estado, fecha_registro, fecha_vencimiento, parrillero_nombre, parrillero_apellido, cedula_parrillero, moto_marca, moto_anio, moto_color, motivo FROM registros WHERE placa = ? ORDER BY id DESC",
+            (search_val,)
+        )
+    else:
+        search_val = cedula.strip()
+        cursor = await db.execute(
+            "SELECT conductor_nombre, conductor_apellido, cedula, placa, estado, fecha_registro, fecha_vencimiento, parrillero_nombre, parrillero_apellido, cedula_parrillero, moto_marca, moto_anio, moto_color, motivo FROM registros WHERE cedula = ? OR cedula_parrillero = ? ORDER BY id DESC",
+            (search_val, search_val)
+        )
+
     registros = await cursor.fetchall()
 
     if not registros:
-        raise HTTPException(status_code=404, detail="No se encontraron registros para esta placa")
+        raise HTTPException(status_code=404, detail="No se encontraron registros")
+
+    def mask(val: str, visible: int = 3, mask_char: str = "*") -> str:
+        if not val:
+            return ""
+        if len(val) <= visible:
+            return val
+        return val[:visible] + mask_char * min(3, len(val) - visible)
+
+    def mask_cedula(val: str) -> str:
+        if not val:
+            return ""
+        if len(val) <= 3:
+            return val
+        return val[:3] + "*" * min(4, len(val) - 3)
 
     results = []
     for reg in registros:
         reg_dict = dict(reg)
-        nombre = reg_dict["conductor_nombre"]
-        apellido = reg_dict["conductor_apellido"]
-        cedula = reg_dict["cedula"]
-
-        masked_nombre = nombre[:3] + "***" if len(nombre) > 3 else nombre
-        masked_apellido = apellido[:3] + "***" if len(apellido) > 3 else apellido
-        masked_cedula = cedula[:3] + "***" if len(cedula) > 3 else cedula
-
         results.append({
-            "conductor_nombre": masked_nombre,
-            "conductor_apellido": masked_apellido,
-            "cedula": masked_cedula,
-            "placa": reg_dict["placa"],
-            "estado": reg_dict["estado"],
-            "fecha_registro": reg_dict["fecha_registro"],
-            "fecha_vencimiento": reg_dict["fecha_vencimiento"],
+            "conductor_nombre": mask(reg_dict.get("conductor_nombre", "")),
+            "conductor_apellido": mask(reg_dict.get("conductor_apellido", "")),
+            "cedula": mask_cedula(reg_dict.get("cedula", "")),
+            "placa": reg_dict.get("placa", ""),
+            "estado": reg_dict.get("estado", ""),
+            "fecha_registro": reg_dict.get("fecha_registro", ""),
+            "fecha_vencimiento": reg_dict.get("fecha_vencimiento"),
+            "parrillero_nombre": mask(reg_dict.get("parrillero_nombre", "")),
+            "parrillero_apellido": mask(reg_dict.get("parrillero_apellido", "")),
+            "cedula_parrillero": mask_cedula(reg_dict.get("cedula_parrillero", "")),
+            "moto_marca": reg_dict.get("moto_marca", ""),
+            "moto_anio": reg_dict.get("moto_anio", ""),
+            "moto_color": reg_dict.get("moto_color", ""),
+            "motivo": reg_dict.get("motivo", ""),
         })
 
     return results
@@ -461,3 +498,85 @@ async def get_uploaded_file(filename: str):
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Archivo no encontrado")
     return FileResponse(file_path)
+
+
+# ============ EXPORT DATA ============
+
+@app.get("/api/exportar")
+async def exportar_registros(
+    formato: str = Query("csv", pattern="^(csv)$"),
+    estado: Optional[str] = None,
+    current_user: dict = Depends(get_current_user),
+    db: aiosqlite.Connection = Depends(get_db)
+):
+    now = datetime.now(timezone.utc).isoformat()
+    await db.execute(
+        "UPDATE registros SET estado = 'VENCIDO' WHERE estado = 'VIGENTE' AND fecha_vencimiento IS NOT NULL AND fecha_vencimiento < ?",
+        (now,)
+    )
+    await db.commit()
+
+    if estado:
+        cursor = await db.execute(
+            "SELECT * FROM registros WHERE estado = ? ORDER BY id DESC",
+            (estado,)
+        )
+    else:
+        cursor = await db.execute("SELECT * FROM registros ORDER BY id DESC")
+
+    registros = await cursor.fetchall()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "ID", "Conductor Nombre", "Conductor Apellido", "Cedula Conductor", "Genero", "Fecha Nacimiento",
+        "Placa", "Moto Marca", "Moto Anio", "Moto Color",
+        "Parrillero Nombre", "Parrillero Apellido", "Cedula Parrillero",
+        "Motivo", "Descripcion", "Estado", "Fecha Registro", "Fecha Vencimiento"
+    ])
+
+    for reg in registros:
+        reg_dict = dict(reg)
+        writer.writerow([
+            reg_dict.get("id", ""),
+            reg_dict.get("conductor_nombre", ""),
+            reg_dict.get("conductor_apellido", ""),
+            reg_dict.get("cedula", ""),
+            reg_dict.get("genero", ""),
+            reg_dict.get("fecha_nacimiento", ""),
+            reg_dict.get("placa", ""),
+            reg_dict.get("moto_marca", ""),
+            reg_dict.get("moto_anio", ""),
+            reg_dict.get("moto_color", ""),
+            reg_dict.get("parrillero_nombre", ""),
+            reg_dict.get("parrillero_apellido", ""),
+            reg_dict.get("cedula_parrillero", ""),
+            reg_dict.get("motivo", ""),
+            reg_dict.get("descripcion", ""),
+            reg_dict.get("estado", ""),
+            reg_dict.get("fecha_registro", ""),
+            reg_dict.get("fecha_vencimiento", ""),
+        ])
+
+    output.seek(0)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"registros_parrillero_{timestamp}.csv"
+
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+# ============ SERVE FRONTEND ============
+
+if STATIC_DIR.exists():
+    app.mount("/assets", StaticFiles(directory=str(STATIC_DIR / "assets")), name="static-assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_frontend(request: Request, full_path: str):
+        file_path = STATIC_DIR / full_path
+        if full_path and file_path.exists() and file_path.is_file():
+            return FileResponse(str(file_path))
+        return FileResponse(str(STATIC_DIR / "index.html"))
