@@ -13,6 +13,7 @@ import io
 
 from pathlib import Path
 from app.database import get_db, init_db, DB_DIR
+from app.backup import start_backup_scheduler, stop_backup_scheduler, run_weekly_backup
 
 STATIC_DIR = Path(__file__).parent.parent / "static"
 from app.models import (
@@ -38,7 +39,9 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 async def lifespan(app: FastAPI):
     await init_db()
     await check_vencimientos()
+    start_backup_scheduler()
     yield
+    stop_backup_scheduler()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -498,6 +501,36 @@ async def get_uploaded_file(filename: str):
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Archivo no encontrado")
     return FileResponse(file_path)
+
+
+# ============ BACKUP ============
+
+@app.post("/api/backup/enviar")
+async def enviar_backup_manual(
+    current_user: dict = Depends(get_current_user),
+):
+    """Trigger a manual backup email."""
+    await run_weekly_backup()
+    return {"message": "Backup enviado exitosamente"}
+
+
+@app.get("/api/backup/estado")
+async def backup_estado(
+    current_user: dict = Depends(get_current_user),
+):
+    """Get backup configuration status."""
+    from app.backup import SMTP_USER, BACKUP_RECIPIENT, SMTP_PASSWORD, scheduler
+    jobs = scheduler.get_jobs()
+    next_run = None
+    if jobs:
+        next_run = str(jobs[0].next_run_time)
+    return {
+        "configurado": bool(SMTP_PASSWORD),
+        "email_origen": SMTP_USER,
+        "email_destino": BACKUP_RECIPIENT,
+        "frecuencia": "Cada viernes a las 8:00 AM (hora Colombia)",
+        "proximo_envio": next_run,
+    }
 
 
 # ============ EXPORT DATA ============
