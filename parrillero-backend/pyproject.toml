@@ -13,6 +13,7 @@ aiosqlite = "^0.22.1"
 bcrypt = "^5.0.0"
 pyjwt = "^2.12.1"
 python-multipart = "^0.0.22"
+apscheduler = "^3.11.2"
 
 
 [build-system]
