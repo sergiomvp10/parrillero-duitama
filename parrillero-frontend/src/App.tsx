@@ -637,6 +637,7 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [filtroEstado, setFiltroEstado] = useState("");
+  const [busqueda, setBusqueda] = useState("");
   const [adminTab, setAdminTab] = useState("registros");
   const [loading, setLoading] = useState(true);
 
@@ -645,12 +646,8 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const [decretoContenido, setDecretoContenido] = useState("");
   const [decretoMsg, setDecretoMsg] = useState("");
 
-  // Config
-  const [diasVigencia, setDiasVigencia] = useState(90);
-  const [configMsg, setConfigMsg] = useState("");
 
   // Change password
-  const [showChangePass, setShowChangePass] = useState(false);
   const [currentPass, setCurrentPass] = useState("");
   const [newPass, setNewPass] = useState("");
   const [passMsg, setPassMsg] = useState("");
@@ -688,11 +685,6 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
         setDecretoContenido(d.contenido);
       });
     }
-    if (adminTab === "configuracion") {
-      api.obtenerConfiguracion().then((c) => {
-        setDiasVigencia(parseInt(c.dias_vigencia) || 90);
-      });
-    }
   }, [adminTab]);
 
   const handleEstado = async (id: number, estado: string) => {
@@ -724,15 +716,6 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
     }
   };
 
-  const handleSaveConfig = async () => {
-    try {
-      await api.actualizarConfiguracion(diasVigencia);
-      setConfigMsg("Configuracion actualizada");
-      setTimeout(() => setConfigMsg(""), 3000);
-    } catch {
-      setConfigMsg("Error al actualizar");
-    }
-  };
 
   const handleChangePass = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -743,7 +726,7 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
       setPassMsg("Contrasena cambiada exitosamente");
       setCurrentPass("");
       setNewPass("");
-      setTimeout(() => { setShowChangePass(false); setPassMsg(""); }, 2000);
+      setTimeout(() => { setPassMsg(""); }, 2000);
     } catch (err: unknown) {
       setPassError(err instanceof Error ? err.message : "Error");
     }
@@ -764,108 +747,100 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
     }
   };
 
+  const filteredRegistros = busqueda.trim()
+    ? registros.filter((r) => {
+        const q = busqueda.toLowerCase();
+        return (
+          r.conductor_nombre?.toLowerCase().includes(q) ||
+          r.conductor_apellido?.toLowerCase().includes(q) ||
+          r.cedula?.toLowerCase().includes(q) ||
+          r.placa?.toLowerCase().includes(q)
+        );
+      })
+    : registros;
+
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
-        <h2 className="text-2xl font-bold text-green-800">Panel de Administracion</h2>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setShowChangePass(true)}
-            className="bg-gray-200 text-gray-700 px-3 py-2 rounded-md text-sm hover:bg-gray-300 transition"
-          >
-            Cambiar Contrasena
-          </button>
-          <button
-            onClick={() => { api.logout(); onLogout(); }}
-            className="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition"
-          >
-            Cerrar Sesion
-          </button>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Panel Administrativo</h2>
+          <p className="text-sm text-gray-500">Bienvenido, Administrador Principal</p>
         </div>
+        <button
+          onClick={() => { api.logout(); onLogout(); }}
+          className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-50 transition"
+        >
+          <span>&#x2192;</span> Salir
+        </button>
       </div>
 
-      {/* Change Password Modal */}
-      {showChangePass && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
-            <h3 className="text-lg font-bold mb-4">Cambiar Contrasena</h3>
-            {passMsg && <div className="bg-green-50 p-3 mb-3 rounded text-green-800 text-sm">{passMsg}</div>}
-            {passError && <div className="bg-red-50 p-3 mb-3 rounded text-red-800 text-sm">{passError}</div>}
-            <form onSubmit={handleChangePass} className="space-y-3">
-              <div>
-                <label className="block text-sm mb-1">Contrasena actual</label>
-                <input type="password" value={currentPass} onChange={(e) => setCurrentPass(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md" required />
-              </div>
-              <div>
-                <label className="block text-sm mb-1">Nueva contrasena</label>
-                <input type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md" required />
-              </div>
-              <div className="flex gap-2">
-                <button type="submit" className="bg-green-700 text-white px-4 py-2 rounded-md text-sm">Guardar</button>
-                <button type="button" onClick={() => setShowChangePass(false)} className="bg-gray-200 px-4 py-2 rounded-md text-sm">Cancelar</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Stats */}
-      {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-          <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg text-center">
-            <p className="text-2xl font-bold text-blue-700">{stats.total}</p>
-            <p className="text-xs text-blue-600">Total</p>
-          </div>
-          <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg text-center">
-            <p className="text-2xl font-bold text-yellow-700">{stats.pendientes}</p>
-            <p className="text-xs text-yellow-600">Pendientes</p>
-          </div>
-          <div className="bg-green-50 border border-green-200 p-4 rounded-lg text-center">
-            <p className="text-2xl font-bold text-green-700">{stats.aprobados}</p>
-            <p className="text-xs text-green-600">Vigentes</p>
-          </div>
-          <div className="bg-red-50 border border-red-200 p-4 rounded-lg text-center">
-            <p className="text-2xl font-bold text-red-700">{stats.rechazados}</p>
-            <p className="text-xs text-red-600">Rechazados</p>
-          </div>
-          <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg text-center">
-            <p className="text-2xl font-bold text-gray-700">{stats.vencidos}</p>
-            <p className="text-xs text-gray-600">Vencidos</p>
-          </div>
-        </div>
-      )}
-
       {/* Admin tabs */}
-      <div className="flex gap-1 mb-4 border-b overflow-x-auto">
+      <div className="flex gap-2 mb-6 overflow-x-auto">
         {[
-          { key: "registros", label: "Solicitudes" },
-          { key: "decreto", label: "Decreto" },
-          { key: "configuracion", label: "Configuracion" },
+          { key: "registros", label: "Solicitudes", icon: String.fromCodePoint(0x1F4CB) },
+          { key: "decreto", label: "Decreto", icon: String.fromCodePoint(0x2699) },
+          { key: "password", label: "Contrasena", icon: String.fromCodePoint(0x1F511) },
         ].map((t) => (
           <button
             key={t.key}
             onClick={() => setAdminTab(t.key)}
-            className={`px-4 py-2 text-sm font-medium whitespace-nowrap ${
+            className={`px-5 py-2.5 text-sm font-medium whitespace-nowrap rounded-lg border transition ${
               adminTab === t.key
-                ? "border-b-2 border-green-700 text-green-700"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
             }`}
           >
-            {t.label}
+            {t.icon} {t.label}
           </button>
         ))}
       </div>
 
+      {/* Stats */}
+      {stats && (
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+          <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl text-center">
+            <div className="text-blue-600 text-xl mb-1">{String.fromCodePoint(0x1F4C4)}</div>
+            <p className="text-2xl font-bold text-blue-700">{stats.total}</p>
+            <p className="text-xs text-blue-600">Total</p>
+          </div>
+          <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl text-center">
+            <div className="text-yellow-600 text-xl mb-1">{String.fromCodePoint(0x23F3)}</div>
+            <p className="text-2xl font-bold text-yellow-600">{stats.pendientes}</p>
+            <p className="text-xs text-yellow-600">Pendientes</p>
+          </div>
+          <div className="bg-green-50 border border-green-200 p-4 rounded-xl text-center">
+            <div className="text-green-600 text-xl mb-1">{String.fromCodePoint(0x1F465)}</div>
+            <p className="text-2xl font-bold text-green-600">{stats.aprobados}</p>
+            <p className="text-xs text-green-600">Vigentes</p>
+          </div>
+          <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl text-center">
+            <div className="text-orange-600 text-xl mb-1">{String.fromCodePoint(0x26A0)}</div>
+            <p className="text-2xl font-bold text-orange-600">{stats.vencidos}</p>
+            <p className="text-xs text-orange-600">Vencidos</p>
+          </div>
+          <div className="bg-red-50 border border-red-200 p-4 rounded-xl text-center">
+            <div className="text-red-600 text-xl mb-1">{String.fromCodePoint(0x1F4CA)}</div>
+            <p className="text-2xl font-bold text-red-600">{stats.rechazados}</p>
+            <p className="text-xs text-red-600">Rechazados</p>
+          </div>
+        </div>
+      )}
+
       {/* Registros Tab */}
       {adminTab === "registros" && (
         <>
-          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          <div className="bg-white rounded-xl border p-4 mb-4 space-y-3">
+            <input
+              type="text"
+              placeholder="Buscar por placa, cedula o nombre"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="w-full px-4 py-3 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
             <select
               value={filtroEstado}
               onChange={(e) => { setFiltroEstado(e.target.value); setPage(1); }}
-              className="px-3 py-2 border rounded-md text-sm"
+              className="w-full px-4 py-3 border rounded-lg text-sm"
             >
               <option value="">Todos los estados</option>
               <option value="PENDIENTE">Pendientes</option>
@@ -873,13 +848,21 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
               <option value="RECHAZADO">Rechazados</option>
               <option value="VENCIDO">Vencidos</option>
             </select>
-            <span className="text-sm text-gray-500 self-center">
-              Mostrando {registros.length} de {total} registros
+            <button
+              onClick={() => loadData()}
+              className="w-full bg-gray-900 text-white py-3 rounded-lg text-sm font-semibold hover:bg-black transition"
+            >
+              Buscar
+            </button>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 mb-4 items-center">
+            <span className="text-sm text-gray-500">
+              Mostrando {filteredRegistros.length} de {total} registros
             </span>
             <button
               onClick={handleExport}
               disabled={exporting}
-              className="ml-auto bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-2"
+              className="ml-auto bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-2"
             >
               {exporting ? "Exportando..." : "Descargar CSV"}
             </button>
@@ -892,7 +875,7 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
 
           {loading ? (
             <div className="text-center py-8 text-gray-500">Cargando...</div>
-          ) : registros.length === 0 ? (
+          ) : filteredRegistros.length === 0 ? (
             <div className="text-center py-8 text-gray-500">No hay registros</div>
           ) : (
             <div className="overflow-x-auto">
@@ -910,7 +893,7 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {registros.map((r) => (
+                  {filteredRegistros.map((r) => (
                     <tr key={r.id} className="border-t hover:bg-gray-50">
                       <td className="px-3 py-2">{r.id}</td>
                       <td className="px-3 py-2">{r.conductor_nombre} {r.conductor_apellido}</td>
@@ -977,6 +960,28 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
         </>
       )}
 
+      {/* Password Tab */}
+      {adminTab === "password" && (
+        <div className="bg-white p-6 rounded-xl shadow-sm border space-y-4 max-w-md">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Cambiar Contrasena</h3>
+          {passMsg && <div className="bg-green-50 p-3 mb-3 rounded-lg text-green-800 text-sm">{passMsg}</div>}
+          {passError && <div className="bg-red-50 p-3 mb-3 rounded-lg text-red-800 text-sm">{passError}</div>}
+          <form onSubmit={handleChangePass} className="space-y-3">
+            <div>
+              <label className="block text-sm mb-1">Contrasena actual</label>
+              <input type="password" value={currentPass} onChange={(e) => setCurrentPass(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg" required />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Nueva contrasena</label>
+              <input type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg" required />
+            </div>
+            <button type="submit" className="w-full bg-gray-900 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-black transition">Guardar</button>
+          </form>
+        </div>
+      )}
+
       {/* Decreto Tab */}
       {adminTab === "decreto" && (
         <div className="bg-white p-6 rounded-lg shadow-sm border space-y-4">
@@ -1010,32 +1015,6 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
         </div>
       )}
 
-      {/* Configuracion Tab */}
-      {adminTab === "configuracion" && (
-        <div className="bg-white p-6 rounded-lg shadow-sm border space-y-4 max-w-md">
-          {configMsg && (
-            <div className="bg-green-50 border-l-4 border-green-400 p-3 rounded text-green-800 text-sm">{configMsg}</div>
-          )}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Dias de vigencia del permiso
-            </label>
-            <input
-              type="number"
-              value={diasVigencia}
-              onChange={(e) => setDiasVigencia(parseInt(e.target.value) || 0)}
-              min={1}
-              className="w-full px-3 py-2 border rounded-md"
-            />
-          </div>
-          <button
-            onClick={handleSaveConfig}
-            className="bg-green-700 text-white px-6 py-2 rounded-md font-semibold hover:bg-green-800 transition"
-          >
-            Guardar Configuracion
-          </button>
-        </div>
-      )}
     </div>
   );
 }
