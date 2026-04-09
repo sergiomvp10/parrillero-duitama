@@ -28,6 +28,12 @@ class RegistroCreate(BaseModel):
     motivo: str
     descripcion: Optional[str] = None
     acepta_politica_datos: bool = False
+    parrillero_nombre: Optional[str] = None
+    parrillero_apellido: Optional[str] = None
+    cedula_parrillero: Optional[str] = None
+    moto_marca: Optional[str] = None
+    moto_anio: Optional[str] = None
+    moto_color: Optional[str] = None
 
 
 class RegistroResponse(BaseModel):
@@ -44,6 +50,12 @@ class RegistroResponse(BaseModel):
     fecha_registro: str
     fecha_vencimiento: Optional[str] = None
     acepta_politica_datos: int = 0
+    parrillero_nombre: Optional[str] = None
+    parrillero_apellido: Optional[str] = None
+    cedula_parrillero: Optional[str] = None
+    moto_marca: Optional[str] = None
+    moto_anio: Optional[str] = None
+    moto_color: Optional[str] = None
 
 
 class RegistroUpdate(BaseModel):
@@ -58,6 +70,13 @@ class ConsultaResponse(BaseModel):
     estado: str
     fecha_registro: str
     fecha_vencimiento: Optional[str] = None
+    parrillero_nombre: Optional[str] = None
+    parrillero_apellido: Optional[str] = None
+    cedula_parrillero: Optional[str] = None
+    moto_marca: Optional[str] = None
+    moto_anio: Optional[str] = None
+    moto_color: Optional[str] = None
+    motivo: Optional[str] = None
 
 
 class DecretoResponse(BaseModel):
