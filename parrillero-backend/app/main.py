@@ -1,6 +1,7 @@
-from fastapi import FastAPI, Depends, HTTPException, Query, UploadFile, File
+from fastapi import FastAPI, Depends, HTTPException, Query, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -10,7 +11,10 @@ import math
 import csv
 import io
 
+from pathlib import Path
 from app.database import get_db, init_db, DB_DIR
+
+STATIC_DIR = Path(__file__).parent.parent / "static"
 from app.models import (
     UserLogin, ChangePassword, TokenResponse, RegistroCreate, RegistroResponse,
     RegistroUpdate, ConsultaResponse, DecretoResponse, DecretoUpdate,
@@ -524,3 +528,16 @@ async def exportar_registros(
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+
+# ============ SERVE FRONTEND ============
+
+if STATIC_DIR.exists():
+    app.mount("/assets", StaticFiles(directory=str(STATIC_DIR / "assets")), name="static-assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_frontend(request: Request, full_path: str):
+        file_path = STATIC_DIR / full_path
+        if full_path and file_path.exists() and file_path.is_file():
+            return FileResponse(str(file_path))
+        return FileResponse(str(STATIC_DIR / "index.html"))
