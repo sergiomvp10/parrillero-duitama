@@ -86,13 +86,13 @@ function Header() {
             </div>
           </div>
           <div className="text-center flex-1">
-            <h1 className="text-lg md:text-xl font-bold text-green-800">
+            <h1 className="text-lg md:text-xl font-bold text-black">
               Alcaldia Municipal de Duitama
             </h1>
             <p className="text-xs md:text-sm text-gray-600">
               Registro de Excepciones - Circulacion con Parrillero
             </p>
-            <p className="text-xs md:text-sm font-semibold text-green-800">
+            <p className="text-xs md:text-sm font-semibold text-black">
               Secretaria De Gobierno
             </p>
           </div>
@@ -124,7 +124,7 @@ function DecretoTab() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold text-green-800 text-center mb-6">{decreto.titulo}</h2>
+      <h2 className="text-2xl font-bold text-black text-center mb-6">{decreto.titulo}</h2>
       <div
         className="prose max-w-none bg-white p-6 rounded-lg shadow-sm border"
         dangerouslySetInnerHTML={{ __html: decreto.contenido }}
@@ -206,7 +206,7 @@ function SolicitarTab() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-green-800 text-center mb-4">
+      <h2 className="text-2xl font-bold text-black text-center mb-4">
         Solicitud de Excepcion al Decreto de Parrillero
       </h2>
 
@@ -229,7 +229,7 @@ function SolicitarTab() {
       )}
 
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-sm border space-y-4">
-        <h3 className="text-lg font-semibold text-green-800 border-b pb-2">Datos del Conductor</h3>
+        <h3 className="text-lg font-semibold text-black border-b pb-2">Datos del Conductor</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Conductor *</label>
@@ -279,7 +279,7 @@ function SolicitarTab() {
           </div>
         </div>
 
-        <h3 className="text-lg font-semibold text-green-800 border-b pb-2 pt-2">Datos del Parrillero (Acompanante)</h3>
+        <h3 className="text-lg font-semibold text-black border-b pb-2 pt-2">Datos del Parrillero (Acompanante)</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Parrillero *</label>
@@ -318,7 +318,7 @@ function SolicitarTab() {
           />
         </div>
 
-        <h3 className="text-lg font-semibold text-green-800 border-b pb-2 pt-2">Datos de la Motocicleta</h3>
+        <h3 className="text-lg font-semibold text-black border-b pb-2 pt-2">Datos de la Motocicleta</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Placa *</label>
@@ -367,7 +367,7 @@ function SolicitarTab() {
           />
         </div>
 
-        <h3 className="text-lg font-semibold text-green-800 border-b pb-2 pt-2">Motivo de la Excepcion</h3>
+        <h3 className="text-lg font-semibold text-black border-b pb-2 pt-2">Motivo de la Excepcion</h3>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Motivo *</label>
           <select
@@ -479,7 +479,7 @@ function ConsultaTab() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <h2 className="text-2xl font-bold text-green-800 text-center mb-2">
+      <h2 className="text-2xl font-bold text-black text-center mb-2">
         Consulta Publica de Excepciones
       </h2>
       <p className="text-gray-600 text-center mb-6 text-sm">
@@ -590,7 +590,7 @@ function AdminLogin({ onLogin }: { onLogin: () => void }) {
 
   return (
     <div className="max-w-md mx-auto mt-12">
-      <h2 className="text-2xl font-bold text-green-800 text-center mb-6">Panel de Administracion</h2>
+      <h2 className="text-2xl font-bold text-black text-center mb-6">Panel de Administracion</h2>
       {error && (
         <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4 rounded">
           <p className="text-red-800 text-sm">{error}</p>
