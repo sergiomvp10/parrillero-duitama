@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL || "";
 
 function getToken(): string | null {
   return localStorage.getItem("token");
@@ -56,6 +56,12 @@ export async function crearRegistro(data: {
   motivo: string;
   descripcion: string;
   acepta_politica_datos: boolean;
+  parrillero_nombre?: string;
+  parrillero_apellido?: string;
+  cedula_parrillero?: string;
+  moto_marca?: string;
+  moto_anio?: string;
+  moto_color?: string;
 }) {
   const res = await fetch(`${API_URL}/api/registros`, {
     method: "POST",
@@ -97,10 +103,13 @@ export async function eliminarRegistro(id: number) {
 }
 
 // Consulta publica
-export async function consultaPublica(placa: string) {
-  const res = await fetch(`${API_URL}/api/consulta?placa=${encodeURIComponent(placa)}`);
+export async function consultaPublica(placa?: string, cedula?: string) {
+  const params = new URLSearchParams();
+  if (placa) params.set("placa", placa);
+  if (cedula) params.set("cedula", cedula);
+  const res = await fetch(`${API_URL}/api/consulta?${params.toString()}`);
   if (!res.ok) {
-    if (res.status === 404) throw new Error("No se encontraron registros para esta placa");
+    if (res.status === 404) throw new Error("No se encontraron registros");
     throw new Error("Error en la consulta");
   }
   return res.json();
@@ -145,4 +154,22 @@ export async function obtenerEstadisticas() {
   const res = await fetch(`${API_URL}/api/estadisticas`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Error al obtener estadisticas");
   return res.json();
+}
+
+// Exportar datos
+export async function exportarRegistros(estado?: string) {
+  let url = `${API_URL}/api/exportar?formato=csv`;
+  if (estado) url += `&estado=${estado}`;
+  const res = await fetch(url, { headers: authHeaders() });
+  if (!res.ok) throw new Error("Error al exportar registros");
+  const blob = await res.blob();
+  const downloadUrl = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = downloadUrl;
+  const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, "");
+  a.download = `registros_parrillero_${timestamp}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(downloadUrl);
 }

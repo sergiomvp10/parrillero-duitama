@@ -15,6 +15,12 @@ interface Registro {
   estado: string;
   fecha_registro: string;
   fecha_vencimiento: string | null;
+  parrillero_nombre?: string;
+  parrillero_apellido?: string;
+  cedula_parrillero?: string;
+  moto_marca?: string;
+  moto_anio?: string;
+  moto_color?: string;
 }
 
 interface Estadisticas {
@@ -33,6 +39,13 @@ interface ConsultaResult {
   estado: string;
   fecha_registro: string;
   fecha_vencimiento: string | null;
+  parrillero_nombre?: string;
+  parrillero_apellido?: string;
+  cedula_parrillero?: string;
+  moto_marca?: string;
+  moto_anio?: string;
+  moto_color?: string;
+  motivo?: string;
 }
 
 // ============ CAPTCHA ============
@@ -66,12 +79,9 @@ function Header() {
           <div className="flex items-center gap-3">
             <div className="w-16 h-16 flex items-center justify-center">
               <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Escudo_de_Duitama.svg/200px-Escudo_de_Duitama.svg.png"
+                src="/escudo-duitama.png"
                 alt="Escudo de Duitama"
                 className="h-14 w-auto"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
               />
             </div>
           </div>
@@ -80,18 +90,18 @@ function Header() {
               Alcaldia Municipal de Duitama
             </h1>
             <p className="text-xs md:text-sm text-gray-600">
-              Secretaria de Gobierno - Control de Movilidad
+              Registro de Excepciones - Circulacion con Parrillero
+            </p>
+            <p className="text-xs md:text-sm font-semibold text-green-800">
+              Secretaria De Gobierno
             </p>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-16 h-16 flex items-center justify-center">
               <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Polic%C3%ADa_Nacional_de_Colombia.svg/200px-Polic%C3%ADa_Nacional_de_Colombia.svg.png"
+                src="/policia-nacional.png"
                 alt="Policia Nacional"
                 className="h-14 w-auto"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
               />
             </div>
           </div>
@@ -135,6 +145,12 @@ function SolicitarTab() {
     motivo: "",
     descripcion: "",
     acepta_politica_datos: false,
+    parrillero_nombre: "",
+    parrillero_apellido: "",
+    cedula_parrillero: "",
+    moto_marca: "",
+    moto_anio: "",
+    moto_color: "",
   });
   const [captcha, setCaptcha] = useState(generateCaptcha());
   const [captchaInput, setCaptchaInput] = useState("");
@@ -159,7 +175,7 @@ function SolicitarTab() {
       return;
     }
 
-    if (!form.conductor_nombre || !form.conductor_apellido || !form.cedula || !form.placa || !form.motivo) {
+    if (!form.conductor_nombre || !form.conductor_apellido || !form.cedula || !form.placa || !form.motivo || !form.parrillero_nombre || !form.parrillero_apellido || !form.cedula_parrillero) {
       setError("Todos los campos obligatorios deben ser completados");
       return;
     }
@@ -176,6 +192,8 @@ function SolicitarTab() {
       setForm({
         conductor_nombre: "", conductor_apellido: "", cedula: "", genero: "masculino",
         fecha_nacimiento: "", placa: "", motivo: "", descripcion: "", acepta_politica_datos: false,
+        parrillero_nombre: "", parrillero_apellido: "", cedula_parrillero: "",
+        moto_marca: "", moto_anio: "", moto_color: "",
       });
       setCaptcha(generateCaptcha());
       setCaptchaInput("");
@@ -211,6 +229,7 @@ function SolicitarTab() {
       )}
 
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-sm border space-y-4">
+        <h3 className="text-lg font-semibold text-green-800 border-b pb-2">Datos del Conductor</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Conductor *</label>
@@ -236,7 +255,7 @@ function SolicitarTab() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Cedula de Ciudadania *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Cedula del Conductor *</label>
             <input
               type="text"
               value={form.cedula}
@@ -250,19 +269,6 @@ function SolicitarTab() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Genero</label>
-            <select
-              value={form.genero}
-              onChange={(e) => setForm({ ...form, genero: e.target.value })}
-              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            >
-              <option value="masculino">Masculino</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Nacimiento</label>
             <input
               type="date"
@@ -271,21 +277,99 @@ function SolicitarTab() {
               className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
             />
           </div>
+        </div>
+
+        <h3 className="text-lg font-semibold text-green-800 border-b pb-2 pt-2">Datos del Parrillero (Acompanante)</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Placa de la Moto *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Parrillero *</label>
             <input
               type="text"
-              value={form.placa}
-              onChange={(e) => setForm({ ...form, placa: e.target.value.toUpperCase() })}
-              placeholder="Ej: ABC123"
-              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 uppercase"
+              value={form.parrillero_nombre}
+              onChange={(e) => setForm({ ...form, parrillero_nombre: e.target.value })}
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Apellido del Parrillero *</label>
+            <input
+              type="text"
+              value={form.parrillero_apellido}
+              onChange={(e) => setForm({ ...form, parrillero_apellido: e.target.value })}
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
               required
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Motivo de la Excepcion *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Cedula del Parrillero *</label>
+          <input
+            type="text"
+            value={form.cedula_parrillero}
+            onChange={(e) => {
+              const v = e.target.value.replace(/\D/g, "");
+              if (v.length <= 12) setForm({ ...form, cedula_parrillero: v });
+            }}
+            placeholder="Solo numeros (6-12 digitos)"
+            className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            required
+          />
+        </div>
+
+        <h3 className="text-lg font-semibold text-green-800 border-b pb-2 pt-2">Datos de la Motocicleta</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Placa *</label>
+            <input
+              type="text"
+              value={form.placa}
+              onChange={(e) => setForm({ ...form, placa: e.target.value.toUpperCase() })}
+              placeholder="Ej: ABC12E"
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 uppercase"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Marca</label>
+            <input
+              type="text"
+              value={form.moto_marca}
+              onChange={(e) => setForm({ ...form, moto_marca: e.target.value })}
+              placeholder="Ej: Pulsar, Yamaha"
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Ano</label>
+            <input
+              type="text"
+              value={form.moto_anio}
+              onChange={(e) => {
+                const v = e.target.value.replace(/\D/g, "");
+                if (v.length <= 4) setForm({ ...form, moto_anio: v });
+              }}
+              placeholder="Ej: 2017"
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+          <input
+            type="text"
+            value={form.moto_color}
+            onChange={(e) => setForm({ ...form, moto_color: e.target.value })}
+            placeholder="Ej: Negro, Rojo"
+            className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+          />
+        </div>
+
+        <h3 className="text-lg font-semibold text-green-800 border-b pb-2 pt-2">Motivo de la Excepcion</h3>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Motivo *</label>
           <select
             value={form.motivo}
             onChange={(e) => setForm({ ...form, motivo: e.target.value })}
@@ -293,10 +377,10 @@ function SolicitarTab() {
             required
           >
             <option value="">Seleccione un motivo</option>
-            <option value="Trabajo">Trabajo</option>
-            <option value="Educativo">Educativo</option>
-            <option value="Familiar">Familiar</option>
-            <option value="Otro">Otro</option>
+            <option value="TRABAJO">Trabajo</option>
+            <option value="EDUCATIVO">Educativo</option>
+            <option value="FAMILIAR">Familiar</option>
+            <option value="OTRO">Otro</option>
           </select>
         </div>
 
@@ -364,7 +448,8 @@ function SolicitarTab() {
 
 // ============ CONSULTA TAB ============
 function ConsultaTab() {
-  const [placa, setPlaca] = useState("");
+  const [searchType, setSearchType] = useState<"placa" | "cedula">("placa");
+  const [searchValue, setSearchValue] = useState("");
   const [results, setResults] = useState<ConsultaResult[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -375,13 +460,15 @@ function ConsultaTab() {
     setError("");
     setResults([]);
     setSearched(true);
-    if (!placa.trim()) {
-      setError("Ingrese una placa para consultar");
+    if (!searchValue.trim()) {
+      setError(searchType === "placa" ? "Ingrese una placa para consultar" : "Ingrese una cedula para consultar");
       return;
     }
     setLoading(true);
     try {
-      const data = await api.consultaPublica(placa);
+      const data = searchType === "placa"
+        ? await api.consultaPublica(searchValue, undefined)
+        : await api.consultaPublica(undefined, searchValue);
       setResults(data);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error en la consulta");
@@ -392,65 +479,84 @@ function ConsultaTab() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <h2 className="text-2xl font-bold text-green-800 text-center mb-6">
+      <h2 className="text-2xl font-bold text-green-800 text-center mb-2">
         Consulta Publica de Excepciones
       </h2>
       <p className="text-gray-600 text-center mb-6 text-sm">
-        Consulte el estado de una excepcion ingresando la placa de la motocicleta.
-        Los datos personales se muestran parcialmente protegidos.
+        Verifique el estado de una solicitud de excepcion para circular con parrillero.
       </p>
 
-      <form onSubmit={handleSearch} className="flex gap-3 mb-6 max-w-md mx-auto">
-        <input
-          type="text"
-          value={placa}
-          onChange={(e) => setPlaca(e.target.value.toUpperCase())}
-          placeholder="Ingrese la placa (ej: ABC123)"
-          className="flex-1 px-4 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 uppercase"
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-green-700 text-white px-6 py-2 rounded-md font-semibold hover:bg-green-800 transition disabled:opacity-50"
-        >
-          {loading ? "..." : "Buscar"}
-        </button>
-      </form>
+      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6 max-w-lg mx-auto">
+        <div className="flex justify-center gap-2 mb-4">
+          <button
+            type="button"
+            onClick={() => { setSearchType("placa"); setSearchValue(""); setResults([]); setSearched(false); setError(""); }}
+            className={`px-5 py-2 rounded-md font-semibold text-sm transition ${searchType === "placa" ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+          >
+            Buscar por Placa
+          </button>
+          <button
+            type="button"
+            onClick={() => { setSearchType("cedula"); setSearchValue(""); setResults([]); setSearched(false); setError(""); }}
+            className={`px-5 py-2 rounded-md font-semibold text-sm transition ${searchType === "cedula" ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+          >
+            Buscar por Cedula
+          </button>
+        </div>
+
+        <form onSubmit={handleSearch} className="flex gap-3">
+          <input
+            type="text"
+            value={searchValue}
+            onChange={(e) => setSearchValue(searchType === "placa" ? e.target.value.toUpperCase() : e.target.value.replace(/\D/g, ""))}
+            placeholder={searchType === "placa" ? "Ingrese la placa (ej: GUH92E)" : "Ingrese la cedula"}
+            className={`flex-1 px-4 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${searchType === "placa" ? "uppercase" : ""}`}
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-gray-800 text-white px-6 py-2 rounded-md font-semibold hover:bg-gray-900 transition disabled:opacity-50 flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            Buscar
+          </button>
+        </form>
+      </div>
 
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4 rounded max-w-md mx-auto">
+        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4 rounded max-w-lg mx-auto">
           <p className="text-red-800 text-sm">{error}</p>
         </div>
       )}
 
       {results.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="w-full bg-white rounded-lg shadow-sm border text-sm">
-            <thead className="bg-green-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-green-800">Nombre</th>
-                <th className="px-4 py-3 text-left text-green-800">Apellido</th>
-                <th className="px-4 py-3 text-left text-green-800">Cedula</th>
-                <th className="px-4 py-3 text-left text-green-800">Placa</th>
-                <th className="px-4 py-3 text-left text-green-800">Estado</th>
-                <th className="px-4 py-3 text-left text-green-800">Registro</th>
-                <th className="px-4 py-3 text-left text-green-800">Vence</th>
-              </tr>
-            </thead>
-            <tbody>
-              {results.map((r, i) => (
-                <tr key={i} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-3">{r.conductor_nombre}</td>
-                  <td className="px-4 py-3">{r.conductor_apellido}</td>
-                  <td className="px-4 py-3">{r.cedula}</td>
-                  <td className="px-4 py-3 font-mono">{r.placa}</td>
-                  <td className="px-4 py-3"><StatusBadge estado={r.estado} /></td>
-                  <td className="px-4 py-3 text-xs">{r.fecha_registro?.split("T")[0] || "-"}</td>
-                  <td className="px-4 py-3 text-xs">{r.fecha_vencimiento?.split("T")[0] || "-"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div>
+          <p className="text-center text-gray-600 text-sm mb-4">{results.length} solicitud(es) encontrada(s)</p>
+          <div className="space-y-4">
+            {results.map((r, i) => (
+              <div key={i} className="bg-green-50 border border-green-200 rounded-lg p-5 relative">
+                <div className="absolute top-4 right-4">
+                  <StatusBadge estado={r.estado} />
+                </div>
+                <div className="flex items-center gap-2 mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span className="font-semibold text-gray-800">
+                    Excepcion {r.estado === "PENDIENTE" ? "Pendiente" : r.estado === "VIGENTE" ? "Vigente" : r.estado === "RECHAZADO" ? "Rechazada" : "Vencida"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                  <p><span className="text-gray-600">Conductor:</span> <span className="font-medium">{r.conductor_nombre} {r.conductor_apellido}</span></p>
+                  <p><span className="text-gray-600">Placa:</span> <span className="font-bold">{r.placa}</span></p>
+                  <p><span className="text-gray-600">Motocicleta:</span> <span className="font-medium">{[r.moto_marca, r.moto_anio, r.moto_color ? `- ${r.moto_color}` : ""].filter(Boolean).join(" ") || "-"}</span></p>
+                  <p><span className="text-gray-600">Parrillero:</span> <span className="font-medium">{r.parrillero_nombre} {r.parrillero_apellido}</span></p>
+                  <p><span className="text-gray-600">Cedula Parrillero:</span> <span className="font-medium">{r.cedula_parrillero || "-"}</span></p>
+                  <p><span className="text-gray-600">Motivo:</span> <span className="font-medium">{r.motivo || "-"}</span></p>
+                  <p><span className="text-gray-600">Fecha de registro:</span> <span className="font-medium">{r.fecha_registro || "-"}</span></p>
+                  {r.fecha_vencimiento && <p><span className="text-gray-600">Vence:</span> <span className="font-medium">{r.fecha_vencimiento}</span></p>}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -531,6 +637,7 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [filtroEstado, setFiltroEstado] = useState("");
+  const [busqueda, setBusqueda] = useState("");
   const [adminTab, setAdminTab] = useState("registros");
   const [loading, setLoading] = useState(true);
 
@@ -539,16 +646,16 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const [decretoContenido, setDecretoContenido] = useState("");
   const [decretoMsg, setDecretoMsg] = useState("");
 
-  // Config
-  const [diasVigencia, setDiasVigencia] = useState(90);
-  const [configMsg, setConfigMsg] = useState("");
 
   // Change password
-  const [showChangePass, setShowChangePass] = useState(false);
   const [currentPass, setCurrentPass] = useState("");
   const [newPass, setNewPass] = useState("");
   const [passMsg, setPassMsg] = useState("");
   const [passError, setPassError] = useState("");
+
+  // Export
+  const [exporting, setExporting] = useState(false);
+  const [exportMsg, setExportMsg] = useState("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -576,11 +683,6 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
       api.obtenerDecreto().then((d) => {
         setDecretoTitulo(d.titulo);
         setDecretoContenido(d.contenido);
-      });
-    }
-    if (adminTab === "configuracion") {
-      api.obtenerConfiguracion().then((c) => {
-        setDiasVigencia(parseInt(c.dias_vigencia) || 90);
       });
     }
   }, [adminTab]);
@@ -614,15 +716,6 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
     }
   };
 
-  const handleSaveConfig = async () => {
-    try {
-      await api.actualizarConfiguracion(diasVigencia);
-      setConfigMsg("Configuracion actualizada");
-      setTimeout(() => setConfigMsg(""), 3000);
-    } catch {
-      setConfigMsg("Error al actualizar");
-    }
-  };
 
   const handleChangePass = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -633,114 +726,121 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
       setPassMsg("Contrasena cambiada exitosamente");
       setCurrentPass("");
       setNewPass("");
-      setTimeout(() => { setShowChangePass(false); setPassMsg(""); }, 2000);
+      setTimeout(() => { setPassMsg(""); }, 2000);
     } catch (err: unknown) {
       setPassError(err instanceof Error ? err.message : "Error");
     }
   };
 
+  const handleExport = async () => {
+    setExporting(true);
+    setExportMsg("");
+    try {
+      await api.exportarRegistros(filtroEstado || undefined);
+      setExportMsg("Archivo CSV descargado exitosamente");
+      setTimeout(() => setExportMsg(""), 3000);
+    } catch {
+      setExportMsg("Error al exportar datos");
+      setTimeout(() => setExportMsg(""), 3000);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const filteredRegistros = busqueda.trim()
+    ? registros.filter((r) => {
+        const q = busqueda.toLowerCase();
+        return (
+          r.conductor_nombre?.toLowerCase().includes(q) ||
+          r.conductor_apellido?.toLowerCase().includes(q) ||
+          r.cedula?.toLowerCase().includes(q) ||
+          r.placa?.toLowerCase().includes(q)
+        );
+      })
+    : registros;
+
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
-        <h2 className="text-2xl font-bold text-green-800">Panel de Administracion</h2>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setShowChangePass(true)}
-            className="bg-gray-200 text-gray-700 px-3 py-2 rounded-md text-sm hover:bg-gray-300 transition"
-          >
-            Cambiar Contrasena
-          </button>
-          <button
-            onClick={() => { api.logout(); onLogout(); }}
-            className="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition"
-          >
-            Cerrar Sesion
-          </button>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Panel Administrativo</h2>
+          <p className="text-sm text-gray-500">Bienvenido, Administrador Principal</p>
         </div>
+        <button
+          onClick={() => { api.logout(); onLogout(); }}
+          className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-50 transition"
+        >
+          <span>&#x2192;</span> Salir
+        </button>
       </div>
 
-      {/* Change Password Modal */}
-      {showChangePass && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
-            <h3 className="text-lg font-bold mb-4">Cambiar Contrasena</h3>
-            {passMsg && <div className="bg-green-50 p-3 mb-3 rounded text-green-800 text-sm">{passMsg}</div>}
-            {passError && <div className="bg-red-50 p-3 mb-3 rounded text-red-800 text-sm">{passError}</div>}
-            <form onSubmit={handleChangePass} className="space-y-3">
-              <div>
-                <label className="block text-sm mb-1">Contrasena actual</label>
-                <input type="password" value={currentPass} onChange={(e) => setCurrentPass(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md" required />
-              </div>
-              <div>
-                <label className="block text-sm mb-1">Nueva contrasena</label>
-                <input type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md" required />
-              </div>
-              <div className="flex gap-2">
-                <button type="submit" className="bg-green-700 text-white px-4 py-2 rounded-md text-sm">Guardar</button>
-                <button type="button" onClick={() => setShowChangePass(false)} className="bg-gray-200 px-4 py-2 rounded-md text-sm">Cancelar</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Stats */}
-      {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-          <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg text-center">
-            <p className="text-2xl font-bold text-blue-700">{stats.total}</p>
-            <p className="text-xs text-blue-600">Total</p>
-          </div>
-          <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg text-center">
-            <p className="text-2xl font-bold text-yellow-700">{stats.pendientes}</p>
-            <p className="text-xs text-yellow-600">Pendientes</p>
-          </div>
-          <div className="bg-green-50 border border-green-200 p-4 rounded-lg text-center">
-            <p className="text-2xl font-bold text-green-700">{stats.aprobados}</p>
-            <p className="text-xs text-green-600">Vigentes</p>
-          </div>
-          <div className="bg-red-50 border border-red-200 p-4 rounded-lg text-center">
-            <p className="text-2xl font-bold text-red-700">{stats.rechazados}</p>
-            <p className="text-xs text-red-600">Rechazados</p>
-          </div>
-          <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg text-center">
-            <p className="text-2xl font-bold text-gray-700">{stats.vencidos}</p>
-            <p className="text-xs text-gray-600">Vencidos</p>
-          </div>
-        </div>
-      )}
-
       {/* Admin tabs */}
-      <div className="flex gap-1 mb-4 border-b overflow-x-auto">
+      <div className="flex gap-2 mb-6 overflow-x-auto">
         {[
-          { key: "registros", label: "Solicitudes" },
-          { key: "decreto", label: "Decreto" },
-          { key: "configuracion", label: "Configuracion" },
+          { key: "registros", label: "Solicitudes", icon: String.fromCodePoint(0x1F4CB) },
+          { key: "decreto", label: "Decreto", icon: String.fromCodePoint(0x2699) },
+          { key: "password", label: "Contrasena", icon: String.fromCodePoint(0x1F511) },
         ].map((t) => (
           <button
             key={t.key}
             onClick={() => setAdminTab(t.key)}
-            className={`px-4 py-2 text-sm font-medium whitespace-nowrap ${
+            className={`px-5 py-2.5 text-sm font-medium whitespace-nowrap rounded-lg border transition ${
               adminTab === t.key
-                ? "border-b-2 border-green-700 text-green-700"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
             }`}
           >
-            {t.label}
+            {t.icon} {t.label}
           </button>
         ))}
       </div>
 
+      {/* Stats */}
+      {stats && (
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+          <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl text-center">
+            <div className="text-blue-600 text-xl mb-1">{String.fromCodePoint(0x1F4C4)}</div>
+            <p className="text-2xl font-bold text-blue-700">{stats.total}</p>
+            <p className="text-xs text-blue-600">Total</p>
+          </div>
+          <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl text-center">
+            <div className="text-yellow-600 text-xl mb-1">{String.fromCodePoint(0x23F3)}</div>
+            <p className="text-2xl font-bold text-yellow-600">{stats.pendientes}</p>
+            <p className="text-xs text-yellow-600">Pendientes</p>
+          </div>
+          <div className="bg-green-50 border border-green-200 p-4 rounded-xl text-center">
+            <div className="text-green-600 text-xl mb-1">{String.fromCodePoint(0x1F465)}</div>
+            <p className="text-2xl font-bold text-green-600">{stats.aprobados}</p>
+            <p className="text-xs text-green-600">Vigentes</p>
+          </div>
+          <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl text-center">
+            <div className="text-orange-600 text-xl mb-1">{String.fromCodePoint(0x26A0)}</div>
+            <p className="text-2xl font-bold text-orange-600">{stats.vencidos}</p>
+            <p className="text-xs text-orange-600">Vencidos</p>
+          </div>
+          <div className="bg-red-50 border border-red-200 p-4 rounded-xl text-center">
+            <div className="text-red-600 text-xl mb-1">{String.fromCodePoint(0x1F4CA)}</div>
+            <p className="text-2xl font-bold text-red-600">{stats.rechazados}</p>
+            <p className="text-xs text-red-600">Rechazados</p>
+          </div>
+        </div>
+      )}
+
       {/* Registros Tab */}
       {adminTab === "registros" && (
         <>
-          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          <div className="bg-white rounded-xl border p-4 mb-4 space-y-3">
+            <input
+              type="text"
+              placeholder="Buscar por placa, cedula o nombre"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="w-full px-4 py-3 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
             <select
               value={filtroEstado}
               onChange={(e) => { setFiltroEstado(e.target.value); setPage(1); }}
-              className="px-3 py-2 border rounded-md text-sm"
+              className="w-full px-4 py-3 border rounded-lg text-sm"
             >
               <option value="">Todos los estados</option>
               <option value="PENDIENTE">Pendientes</option>
@@ -748,14 +848,34 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
               <option value="RECHAZADO">Rechazados</option>
               <option value="VENCIDO">Vencidos</option>
             </select>
-            <span className="text-sm text-gray-500 self-center">
-              Mostrando {registros.length} de {total} registros
-            </span>
+            <button
+              onClick={() => loadData()}
+              className="w-full bg-gray-900 text-white py-3 rounded-lg text-sm font-semibold hover:bg-black transition"
+            >
+              Buscar
+            </button>
           </div>
+          <div className="flex flex-col sm:flex-row gap-3 mb-4 items-center">
+            <span className="text-sm text-gray-500">
+              Mostrando {filteredRegistros.length} de {total} registros
+            </span>
+            <button
+              onClick={handleExport}
+              disabled={exporting}
+              className="ml-auto bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-2"
+            >
+              {exporting ? "Exportando..." : "Descargar CSV"}
+            </button>
+          </div>
+          {exportMsg && (
+            <div className={`mb-4 p-3 rounded text-sm ${exportMsg.includes("Error") ? "bg-red-50 border-l-4 border-red-400 text-red-800" : "bg-green-50 border-l-4 border-green-400 text-green-800"}`}>
+              {exportMsg}
+            </div>
+          )}
 
           {loading ? (
             <div className="text-center py-8 text-gray-500">Cargando...</div>
-          ) : registros.length === 0 ? (
+          ) : filteredRegistros.length === 0 ? (
             <div className="text-center py-8 text-gray-500">No hay registros</div>
           ) : (
             <div className="overflow-x-auto">
@@ -773,7 +893,7 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {registros.map((r) => (
+                  {filteredRegistros.map((r) => (
                     <tr key={r.id} className="border-t hover:bg-gray-50">
                       <td className="px-3 py-2">{r.id}</td>
                       <td className="px-3 py-2">{r.conductor_nombre} {r.conductor_apellido}</td>
@@ -840,6 +960,28 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
         </>
       )}
 
+      {/* Password Tab */}
+      {adminTab === "password" && (
+        <div className="bg-white p-6 rounded-xl shadow-sm border space-y-4 max-w-md">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Cambiar Contrasena</h3>
+          {passMsg && <div className="bg-green-50 p-3 mb-3 rounded-lg text-green-800 text-sm">{passMsg}</div>}
+          {passError && <div className="bg-red-50 p-3 mb-3 rounded-lg text-red-800 text-sm">{passError}</div>}
+          <form onSubmit={handleChangePass} className="space-y-3">
+            <div>
+              <label className="block text-sm mb-1">Contrasena actual</label>
+              <input type="password" value={currentPass} onChange={(e) => setCurrentPass(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg" required />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Nueva contrasena</label>
+              <input type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg" required />
+            </div>
+            <button type="submit" className="w-full bg-gray-900 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-black transition">Guardar</button>
+          </form>
+        </div>
+      )}
+
       {/* Decreto Tab */}
       {adminTab === "decreto" && (
         <div className="bg-white p-6 rounded-lg shadow-sm border space-y-4">
@@ -873,32 +1015,6 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
         </div>
       )}
 
-      {/* Configuracion Tab */}
-      {adminTab === "configuracion" && (
-        <div className="bg-white p-6 rounded-lg shadow-sm border space-y-4 max-w-md">
-          {configMsg && (
-            <div className="bg-green-50 border-l-4 border-green-400 p-3 rounded text-green-800 text-sm">{configMsg}</div>
-          )}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Dias de vigencia del permiso
-            </label>
-            <input
-              type="number"
-              value={diasVigencia}
-              onChange={(e) => setDiasVigencia(parseInt(e.target.value) || 0)}
-              min={1}
-              className="w-full px-3 py-2 border rounded-md"
-            />
-          </div>
-          <button
-            onClick={handleSaveConfig}
-            className="bg-green-700 text-white px-6 py-2 rounded-md font-semibold hover:bg-green-800 transition"
-          >
-            Guardar Configuracion
-          </button>
-        </div>
-      )}
     </div>
   );
 }
