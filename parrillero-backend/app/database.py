@@ -100,6 +100,12 @@ async def init_db():
         "fecha_vencimiento": "ALTER TABLE registros ADD COLUMN fecha_vencimiento TIMESTAMP NULL",
         "acepta_politica_datos": "ALTER TABLE registros ADD COLUMN acepta_politica_datos INTEGER DEFAULT 0",
         "conductor_apellido": "ALTER TABLE registros ADD COLUMN conductor_apellido TEXT NOT NULL DEFAULT ''",
+        "parrillero_nombre": "ALTER TABLE registros ADD COLUMN parrillero_nombre TEXT DEFAULT ''",
+        "parrillero_apellido": "ALTER TABLE registros ADD COLUMN parrillero_apellido TEXT DEFAULT ''",
+        "cedula_parrillero": "ALTER TABLE registros ADD COLUMN cedula_parrillero TEXT DEFAULT ''",
+        "moto_marca": "ALTER TABLE registros ADD COLUMN moto_marca TEXT DEFAULT ''",
+        "moto_anio": "ALTER TABLE registros ADD COLUMN moto_anio TEXT DEFAULT ''",
+        "moto_color": "ALTER TABLE registros ADD COLUMN moto_color TEXT DEFAULT ''",
     }
 
     for col, sql in migrations.items():

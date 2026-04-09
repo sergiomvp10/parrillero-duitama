@@ -15,6 +15,12 @@ interface Registro {
   estado: string;
   fecha_registro: string;
   fecha_vencimiento: string | null;
+  parrillero_nombre?: string;
+  parrillero_apellido?: string;
+  cedula_parrillero?: string;
+  moto_marca?: string;
+  moto_anio?: string;
+  moto_color?: string;
 }
 
 interface Estadisticas {
@@ -33,6 +39,13 @@ interface ConsultaResult {
   estado: string;
   fecha_registro: string;
   fecha_vencimiento: string | null;
+  parrillero_nombre?: string;
+  parrillero_apellido?: string;
+  cedula_parrillero?: string;
+  moto_marca?: string;
+  moto_anio?: string;
+  moto_color?: string;
+  motivo?: string;
 }
 
 // ============ CAPTCHA ============
@@ -132,6 +145,12 @@ function SolicitarTab() {
     motivo: "",
     descripcion: "",
     acepta_politica_datos: false,
+    parrillero_nombre: "",
+    parrillero_apellido: "",
+    cedula_parrillero: "",
+    moto_marca: "",
+    moto_anio: "",
+    moto_color: "",
   });
   const [captcha, setCaptcha] = useState(generateCaptcha());
   const [captchaInput, setCaptchaInput] = useState("");
@@ -156,7 +175,7 @@ function SolicitarTab() {
       return;
     }
 
-    if (!form.conductor_nombre || !form.conductor_apellido || !form.cedula || !form.placa || !form.motivo) {
+    if (!form.conductor_nombre || !form.conductor_apellido || !form.cedula || !form.placa || !form.motivo || !form.parrillero_nombre || !form.parrillero_apellido || !form.cedula_parrillero) {
       setError("Todos los campos obligatorios deben ser completados");
       return;
     }
@@ -173,6 +192,8 @@ function SolicitarTab() {
       setForm({
         conductor_nombre: "", conductor_apellido: "", cedula: "", genero: "masculino",
         fecha_nacimiento: "", placa: "", motivo: "", descripcion: "", acepta_politica_datos: false,
+        parrillero_nombre: "", parrillero_apellido: "", cedula_parrillero: "",
+        moto_marca: "", moto_anio: "", moto_color: "",
       });
       setCaptcha(generateCaptcha());
       setCaptchaInput("");
@@ -208,6 +229,7 @@ function SolicitarTab() {
       )}
 
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-sm border space-y-4">
+        <h3 className="text-lg font-semibold text-green-800 border-b pb-2">Datos del Conductor</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Conductor *</label>
@@ -233,7 +255,7 @@ function SolicitarTab() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Cedula de Ciudadania *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Cedula del Conductor *</label>
             <input
               type="text"
               value={form.cedula}
@@ -247,19 +269,6 @@ function SolicitarTab() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Genero</label>
-            <select
-              value={form.genero}
-              onChange={(e) => setForm({ ...form, genero: e.target.value })}
-              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            >
-              <option value="masculino">Masculino</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Nacimiento</label>
             <input
               type="date"
@@ -268,21 +277,99 @@ function SolicitarTab() {
               className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
             />
           </div>
+        </div>
+
+        <h3 className="text-lg font-semibold text-green-800 border-b pb-2 pt-2">Datos del Parrillero (Acompanante)</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Placa de la Moto *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Parrillero *</label>
             <input
               type="text"
-              value={form.placa}
-              onChange={(e) => setForm({ ...form, placa: e.target.value.toUpperCase() })}
-              placeholder="Ej: ABC123"
-              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 uppercase"
+              value={form.parrillero_nombre}
+              onChange={(e) => setForm({ ...form, parrillero_nombre: e.target.value })}
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Apellido del Parrillero *</label>
+            <input
+              type="text"
+              value={form.parrillero_apellido}
+              onChange={(e) => setForm({ ...form, parrillero_apellido: e.target.value })}
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
               required
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Motivo de la Excepcion *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Cedula del Parrillero *</label>
+          <input
+            type="text"
+            value={form.cedula_parrillero}
+            onChange={(e) => {
+              const v = e.target.value.replace(/\D/g, "");
+              if (v.length <= 12) setForm({ ...form, cedula_parrillero: v });
+            }}
+            placeholder="Solo numeros (6-12 digitos)"
+            className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            required
+          />
+        </div>
+
+        <h3 className="text-lg font-semibold text-green-800 border-b pb-2 pt-2">Datos de la Motocicleta</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Placa *</label>
+            <input
+              type="text"
+              value={form.placa}
+              onChange={(e) => setForm({ ...form, placa: e.target.value.toUpperCase() })}
+              placeholder="Ej: ABC12E"
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 uppercase"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Marca</label>
+            <input
+              type="text"
+              value={form.moto_marca}
+              onChange={(e) => setForm({ ...form, moto_marca: e.target.value })}
+              placeholder="Ej: Pulsar, Yamaha"
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Ano</label>
+            <input
+              type="text"
+              value={form.moto_anio}
+              onChange={(e) => {
+                const v = e.target.value.replace(/\D/g, "");
+                if (v.length <= 4) setForm({ ...form, moto_anio: v });
+              }}
+              placeholder="Ej: 2017"
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+          <input
+            type="text"
+            value={form.moto_color}
+            onChange={(e) => setForm({ ...form, moto_color: e.target.value })}
+            placeholder="Ej: Negro, Rojo"
+            className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+          />
+        </div>
+
+        <h3 className="text-lg font-semibold text-green-800 border-b pb-2 pt-2">Motivo de la Excepcion</h3>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Motivo *</label>
           <select
             value={form.motivo}
             onChange={(e) => setForm({ ...form, motivo: e.target.value })}
@@ -290,10 +377,10 @@ function SolicitarTab() {
             required
           >
             <option value="">Seleccione un motivo</option>
-            <option value="Trabajo">Trabajo</option>
-            <option value="Educativo">Educativo</option>
-            <option value="Familiar">Familiar</option>
-            <option value="Otro">Otro</option>
+            <option value="TRABAJO">Trabajo</option>
+            <option value="EDUCATIVO">Educativo</option>
+            <option value="FAMILIAR">Familiar</option>
+            <option value="OTRO">Otro</option>
           </select>
         </div>
 
@@ -361,7 +448,8 @@ function SolicitarTab() {
 
 // ============ CONSULTA TAB ============
 function ConsultaTab() {
-  const [placa, setPlaca] = useState("");
+  const [searchType, setSearchType] = useState<"placa" | "cedula">("placa");
+  const [searchValue, setSearchValue] = useState("");
   const [results, setResults] = useState<ConsultaResult[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -372,13 +460,15 @@ function ConsultaTab() {
     setError("");
     setResults([]);
     setSearched(true);
-    if (!placa.trim()) {
-      setError("Ingrese una placa para consultar");
+    if (!searchValue.trim()) {
+      setError(searchType === "placa" ? "Ingrese una placa para consultar" : "Ingrese una cedula para consultar");
       return;
     }
     setLoading(true);
     try {
-      const data = await api.consultaPublica(placa);
+      const data = searchType === "placa"
+        ? await api.consultaPublica(searchValue, undefined)
+        : await api.consultaPublica(undefined, searchValue);
       setResults(data);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error en la consulta");
@@ -389,65 +479,84 @@ function ConsultaTab() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <h2 className="text-2xl font-bold text-green-800 text-center mb-6">
+      <h2 className="text-2xl font-bold text-green-800 text-center mb-2">
         Consulta Publica de Excepciones
       </h2>
       <p className="text-gray-600 text-center mb-6 text-sm">
-        Consulte el estado de una excepcion ingresando la placa de la motocicleta.
-        Los datos personales se muestran parcialmente protegidos.
+        Verifique el estado de una solicitud de excepcion para circular con parrillero.
       </p>
 
-      <form onSubmit={handleSearch} className="flex gap-3 mb-6 max-w-md mx-auto">
-        <input
-          type="text"
-          value={placa}
-          onChange={(e) => setPlaca(e.target.value.toUpperCase())}
-          placeholder="Ingrese la placa (ej: ABC123)"
-          className="flex-1 px-4 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 uppercase"
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-green-700 text-white px-6 py-2 rounded-md font-semibold hover:bg-green-800 transition disabled:opacity-50"
-        >
-          {loading ? "..." : "Buscar"}
-        </button>
-      </form>
+      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6 max-w-lg mx-auto">
+        <div className="flex justify-center gap-2 mb-4">
+          <button
+            type="button"
+            onClick={() => { setSearchType("placa"); setSearchValue(""); setResults([]); setSearched(false); setError(""); }}
+            className={`px-5 py-2 rounded-md font-semibold text-sm transition ${searchType === "placa" ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+          >
+            Buscar por Placa
+          </button>
+          <button
+            type="button"
+            onClick={() => { setSearchType("cedula"); setSearchValue(""); setResults([]); setSearched(false); setError(""); }}
+            className={`px-5 py-2 rounded-md font-semibold text-sm transition ${searchType === "cedula" ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+          >
+            Buscar por Cedula
+          </button>
+        </div>
+
+        <form onSubmit={handleSearch} className="flex gap-3">
+          <input
+            type="text"
+            value={searchValue}
+            onChange={(e) => setSearchValue(searchType === "placa" ? e.target.value.toUpperCase() : e.target.value.replace(/\D/g, ""))}
+            placeholder={searchType === "placa" ? "Ingrese la placa (ej: GUH92E)" : "Ingrese la cedula"}
+            className={`flex-1 px-4 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${searchType === "placa" ? "uppercase" : ""}`}
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-gray-800 text-white px-6 py-2 rounded-md font-semibold hover:bg-gray-900 transition disabled:opacity-50 flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            Buscar
+          </button>
+        </form>
+      </div>
 
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4 rounded max-w-md mx-auto">
+        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4 rounded max-w-lg mx-auto">
           <p className="text-red-800 text-sm">{error}</p>
         </div>
       )}
 
       {results.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="w-full bg-white rounded-lg shadow-sm border text-sm">
-            <thead className="bg-green-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-green-800">Nombre</th>
-                <th className="px-4 py-3 text-left text-green-800">Apellido</th>
-                <th className="px-4 py-3 text-left text-green-800">Cedula</th>
-                <th className="px-4 py-3 text-left text-green-800">Placa</th>
-                <th className="px-4 py-3 text-left text-green-800">Estado</th>
-                <th className="px-4 py-3 text-left text-green-800">Registro</th>
-                <th className="px-4 py-3 text-left text-green-800">Vence</th>
-              </tr>
-            </thead>
-            <tbody>
-              {results.map((r, i) => (
-                <tr key={i} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-3">{r.conductor_nombre}</td>
-                  <td className="px-4 py-3">{r.conductor_apellido}</td>
-                  <td className="px-4 py-3">{r.cedula}</td>
-                  <td className="px-4 py-3 font-mono">{r.placa}</td>
-                  <td className="px-4 py-3"><StatusBadge estado={r.estado} /></td>
-                  <td className="px-4 py-3 text-xs">{r.fecha_registro?.split("T")[0] || "-"}</td>
-                  <td className="px-4 py-3 text-xs">{r.fecha_vencimiento?.split("T")[0] || "-"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div>
+          <p className="text-center text-gray-600 text-sm mb-4">{results.length} solicitud(es) encontrada(s)</p>
+          <div className="space-y-4">
+            {results.map((r, i) => (
+              <div key={i} className="bg-green-50 border border-green-200 rounded-lg p-5 relative">
+                <div className="absolute top-4 right-4">
+                  <StatusBadge estado={r.estado} />
+                </div>
+                <div className="flex items-center gap-2 mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span className="font-semibold text-gray-800">
+                    Excepcion {r.estado === "PENDIENTE" ? "Pendiente" : r.estado === "VIGENTE" ? "Vigente" : r.estado === "RECHAZADO" ? "Rechazada" : "Vencida"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                  <p><span className="text-gray-600">Conductor:</span> <span className="font-medium">{r.conductor_nombre} {r.conductor_apellido}</span></p>
+                  <p><span className="text-gray-600">Placa:</span> <span className="font-bold">{r.placa}</span></p>
+                  <p><span className="text-gray-600">Motocicleta:</span> <span className="font-medium">{[r.moto_marca, r.moto_anio, r.moto_color ? `- ${r.moto_color}` : ""].filter(Boolean).join(" ") || "-"}</span></p>
+                  <p><span className="text-gray-600">Parrillero:</span> <span className="font-medium">{r.parrillero_nombre} {r.parrillero_apellido}</span></p>
+                  <p><span className="text-gray-600">Cedula Parrillero:</span> <span className="font-medium">{r.cedula_parrillero || "-"}</span></p>
+                  <p><span className="text-gray-600">Motivo:</span> <span className="font-medium">{r.motivo || "-"}</span></p>
+                  <p><span className="text-gray-600">Fecha de registro:</span> <span className="font-medium">{r.fecha_registro || "-"}</span></p>
+                  {r.fecha_vencimiento && <p><span className="text-gray-600">Vence:</span> <span className="font-medium">{r.fecha_vencimiento}</span></p>}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
