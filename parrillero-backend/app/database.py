@@ -106,6 +106,7 @@ async def init_db():
         "moto_marca": "ALTER TABLE registros ADD COLUMN moto_marca TEXT DEFAULT ''",
         "moto_anio": "ALTER TABLE registros ADD COLUMN moto_anio TEXT DEFAULT ''",
         "moto_color": "ALTER TABLE registros ADD COLUMN moto_color TEXT DEFAULT ''",
+        "telefono": "ALTER TABLE registros ADD COLUMN telefono TEXT DEFAULT ''",
     }
 
     for col, sql in migrations.items():

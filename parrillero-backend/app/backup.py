@@ -46,14 +46,14 @@ async def generate_backup_csv() -> str:
 
     writer.writerow([
         "ID",
-        "--- DATOS DEL CONDUCTOR ---", "", "",
+        "--- DATOS DEL CONDUCTOR ---", "", "", "",
         "--- DATOS DEL PARRILLERO ---", "", "",
         "--- DATOS DE LA MOTOCICLETA ---", "", "",
         "--- SOLICITUD ---", "", "", "", ""
     ])
     writer.writerow([
         "ID",
-        "Conductor Nombre", "Conductor Apellido", "Cedula Conductor",
+        "Conductor Nombre", "Conductor Apellido", "Cedula Conductor", "Telefono",
         "Parrillero Nombre", "Parrillero Apellido", "Cedula Parrillero",
         "Placa", "Marca", "Anio", "Color",
         "Motivo", "Descripcion", "Estado", "Fecha Registro", "Fecha Vencimiento"
@@ -66,6 +66,7 @@ async def generate_backup_csv() -> str:
             reg_dict.get("conductor_nombre", ""),
             reg_dict.get("conductor_apellido", ""),
             reg_dict.get("cedula", ""),
+            reg_dict.get("telefono", ""),
             reg_dict.get("parrillero_nombre", ""),
             reg_dict.get("parrillero_apellido", ""),
             reg_dict.get("cedula_parrillero", ""),
@@ -104,7 +105,7 @@ Fecha del backup: {timestamp}
 Enviado desde: {SMTP_USER}
 
 Este archivo contiene la informacion detallada y organizada de:
-- Datos del Conductor (nombre, apellido, cedula)
+- Datos del Conductor (nombre, apellido, cedula, telefono)
 - Datos del Parrillero/Acompanante (nombre, apellido, cedula)
 - Datos de la Motocicleta (placa, marca, anio, color)
 - Informacion de la Solicitud (motivo, descripcion, estado, fechas)

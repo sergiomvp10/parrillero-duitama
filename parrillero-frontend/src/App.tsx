@@ -7,6 +7,7 @@ interface Registro {
   conductor_nombre: string;
   conductor_apellido: string;
   cedula: string;
+  telefono?: string;
   genero: string;
   fecha_nacimiento: string;
   placa: string;
@@ -35,6 +36,7 @@ interface ConsultaResult {
   conductor_nombre: string;
   conductor_apellido: string;
   cedula: string;
+  telefono?: string;
   placa: string;
   estado: string;
   fecha_registro: string;
@@ -139,6 +141,7 @@ function SolicitarTab() {
     conductor_nombre: "",
     conductor_apellido: "",
     cedula: "",
+    telefono: "",
     genero: "masculino",
     fecha_nacimiento: "",
     placa: "",
@@ -190,7 +193,7 @@ function SolicitarTab() {
       await api.crearRegistro(form);
       setMessage("Solicitud registrada exitosamente. Su solicitud sera revisada por la autoridad competente.");
       setForm({
-        conductor_nombre: "", conductor_apellido: "", cedula: "", genero: "masculino",
+        conductor_nombre: "", conductor_apellido: "", cedula: "", telefono: "", genero: "masculino",
         fecha_nacimiento: "", placa: "", motivo: "", descripcion: "", acepta_politica_datos: false,
         parrillero_nombre: "", parrillero_apellido: "", cedula_parrillero: "",
         moto_marca: "", moto_anio: "", moto_color: "",
@@ -277,6 +280,21 @@ function SolicitarTab() {
               className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Telefono del Conductor *</label>
+          <input
+            type="tel"
+            value={form.telefono}
+            onChange={(e) => {
+              const v = e.target.value.replace(/\D/g, "");
+              if (v.length <= 10) setForm({ ...form, telefono: v });
+            }}
+            placeholder="Ej: 3101234567"
+            className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            required
+          />
         </div>
 
         <h3 className="text-lg font-semibold text-black pb-2 pt-2">Datos del Parrillero (Acompanante)</h3>

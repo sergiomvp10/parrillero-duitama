@@ -22,6 +22,7 @@ class RegistroCreate(BaseModel):
     conductor_nombre: str
     conductor_apellido: str
     cedula: str = Field(..., min_length=6, max_length=12, pattern=r"^\d{6,12}$")
+    telefono: Optional[str] = None
     genero: str = "masculino"
     fecha_nacimiento: Optional[str] = None
     placa: str
@@ -41,6 +42,7 @@ class RegistroResponse(BaseModel):
     conductor_nombre: str
     conductor_apellido: str
     cedula: str
+    telefono: Optional[str] = None
     genero: str
     fecha_nacimiento: Optional[str] = None
     placa: str

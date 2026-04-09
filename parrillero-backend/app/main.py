@@ -159,12 +159,13 @@ async def crear_registro(data: RegistroCreate, db: aiosqlite.Connection = Depend
 
     cursor = await db.execute(
         """INSERT INTO registros 
-        (conductor_nombre, conductor_apellido, cedula, genero, fecha_nacimiento, placa, motivo, descripcion, estado, acepta_politica_datos, parrillero_nombre, parrillero_apellido, cedula_parrillero, moto_marca, moto_anio, moto_color) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDIENTE', ?, ?, ?, ?, ?, ?, ?)""",
+        (conductor_nombre, conductor_apellido, cedula, telefono, genero, fecha_nacimiento, placa, motivo, descripcion, estado, acepta_politica_datos, parrillero_nombre, parrillero_apellido, cedula_parrillero, moto_marca, moto_anio, moto_color) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDIENTE', ?, ?, ?, ?, ?, ?, ?)""",
         (
             data.conductor_nombre.strip(),
             data.conductor_apellido.strip(),
             data.cedula.strip(),
+            (data.telefono or "").strip(),
             data.genero,
             data.fecha_nacimiento,
             placa_upper,
@@ -326,13 +327,13 @@ async def consulta_publica(
     if placa:
         search_val = placa.upper().strip()
         cursor = await db.execute(
-            "SELECT conductor_nombre, conductor_apellido, cedula, placa, estado, fecha_registro, fecha_vencimiento, parrillero_nombre, parrillero_apellido, cedula_parrillero, moto_marca, moto_anio, moto_color, motivo FROM registros WHERE placa = ? ORDER BY id DESC",
+            "SELECT conductor_nombre, conductor_apellido, cedula, telefono, placa, estado, fecha_registro, fecha_vencimiento, parrillero_nombre, parrillero_apellido, cedula_parrillero, moto_marca, moto_anio, moto_color, motivo FROM registros WHERE placa = ? ORDER BY id DESC",
             (search_val,)
         )
     else:
         search_val = cedula.strip()
         cursor = await db.execute(
-            "SELECT conductor_nombre, conductor_apellido, cedula, placa, estado, fecha_registro, fecha_vencimiento, parrillero_nombre, parrillero_apellido, cedula_parrillero, moto_marca, moto_anio, moto_color, motivo FROM registros WHERE cedula = ? OR cedula_parrillero = ? ORDER BY id DESC",
+            "SELECT conductor_nombre, conductor_apellido, cedula, telefono, placa, estado, fecha_registro, fecha_vencimiento, parrillero_nombre, parrillero_apellido, cedula_parrillero, moto_marca, moto_anio, moto_color, motivo FROM registros WHERE cedula = ? OR cedula_parrillero = ? ORDER BY id DESC",
             (search_val, search_val)
         )
 
@@ -362,6 +363,7 @@ async def consulta_publica(
             "conductor_nombre": mask(reg_dict.get("conductor_nombre", "")),
             "conductor_apellido": mask(reg_dict.get("conductor_apellido", "")),
             "cedula": mask_cedula(reg_dict.get("cedula", "")),
+            "telefono": mask(reg_dict.get("telefono", ""), visible=3),
             "placa": reg_dict.get("placa", ""),
             "estado": reg_dict.get("estado", ""),
             "fecha_registro": reg_dict.get("fecha_registro", ""),
@@ -562,7 +564,7 @@ async def exportar_registros(
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow([
-        "ID", "Conductor Nombre", "Conductor Apellido", "Cedula Conductor", "Genero", "Fecha Nacimiento",
+        "ID", "Conductor Nombre", "Conductor Apellido", "Cedula Conductor", "Telefono", "Genero", "Fecha Nacimiento",
         "Placa", "Moto Marca", "Moto Anio", "Moto Color",
         "Parrillero Nombre", "Parrillero Apellido", "Cedula Parrillero",
         "Motivo", "Descripcion", "Estado", "Fecha Registro", "Fecha Vencimiento"
@@ -575,6 +577,7 @@ async def exportar_registros(
             reg_dict.get("conductor_nombre", ""),
             reg_dict.get("conductor_apellido", ""),
             reg_dict.get("cedula", ""),
+            reg_dict.get("telefono", ""),
             reg_dict.get("genero", ""),
             reg_dict.get("fecha_nacimiento", ""),
             reg_dict.get("placa", ""),
