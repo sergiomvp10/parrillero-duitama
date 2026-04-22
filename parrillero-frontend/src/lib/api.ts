@@ -50,6 +50,7 @@ export async function crearRegistro(data: {
   conductor_nombre: string;
   conductor_apellido: string;
   cedula: string;
+  telefono?: string;
   genero: string;
   fecha_nacimiento: string;
   placa: string;
