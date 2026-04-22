@@ -565,6 +565,7 @@ function ConsultaTab() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
                   <p><span className="text-gray-600">Conductor:</span> <span className="font-medium">{r.conductor_nombre} {r.conductor_apellido}</span></p>
                   <p><span className="text-gray-600">Placa:</span> <span className="font-bold">{r.placa}</span></p>
+                  {r.telefono && <p><span className="text-gray-600">Telefono:</span> <span className="font-medium">{r.telefono}</span></p>}
                   <p><span className="text-gray-600">Motocicleta:</span> <span className="font-medium">{[r.moto_marca, r.moto_anio, r.moto_color ? `- ${r.moto_color}` : ""].filter(Boolean).join(" ") || "-"}</span></p>
                   <p><span className="text-gray-600">Parrillero:</span> <span className="font-medium">{r.parrillero_nombre} {r.parrillero_apellido}</span></p>
                   <p><span className="text-gray-600">Cedula Parrillero:</span> <span className="font-medium">{r.cedula_parrillero || "-"}</span></p>
