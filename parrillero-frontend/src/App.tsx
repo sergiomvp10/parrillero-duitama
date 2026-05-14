@@ -656,6 +656,9 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const [passMsg, setPassMsg] = useState("");
   const [passError, setPassError] = useState("");
 
+  // Detail modal
+  const [selectedRegistro, setSelectedRegistro] = useState<Registro | null>(null);
+
   // Export
   const [exporting, setExporting] = useState(false);
   const [exportMsg, setExportMsg] = useState("");
@@ -921,6 +924,12 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
                       <td className="px-3 py-2 text-xs">{r.fecha_registro?.split("T")[0] || "-"}</td>
                       <td className="px-3 py-2">
                         <div className="flex gap-1 flex-wrap">
+                          <button
+                            onClick={() => setSelectedRegistro(r)}
+                            className="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700"
+                          >
+                            Ver
+                          </button>
                           {r.estado === "PENDIENTE" && (
                             <>
                               <button
@@ -949,6 +958,129 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Detail Modal */}
+          {selectedRegistro && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-green-800">Detalle de Solicitud #{selectedRegistro.id}</h3>
+                  <button
+                    onClick={() => setSelectedRegistro(null)}
+                    className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                  >
+                    &times;
+                  </button>
+                </div>
+                <div className="px-6 py-4 space-y-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <StatusBadge estado={selectedRegistro.estado} />
+                    <span className="text-xs text-gray-500">Registrado: {selectedRegistro.fecha_registro?.replace("T", " ").slice(0, 19) || "-"}</span>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Datos del Conductor</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-xs text-gray-400">Nombre completo</p>
+                        <p className="text-sm font-medium">{selectedRegistro.conductor_nombre} {selectedRegistro.conductor_apellido}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400">Cedula</p>
+                        <p className="text-sm font-medium font-mono">{selectedRegistro.cedula}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400">Genero</p>
+                        <p className="text-sm font-medium capitalize">{selectedRegistro.genero || "-"}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400">Fecha de nacimiento</p>
+                        <p className="text-sm font-medium">{selectedRegistro.fecha_nacimiento || "-"}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Datos del Parrillero</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-xs text-gray-400">Nombre completo</p>
+                        <p className="text-sm font-medium">{selectedRegistro.parrillero_nombre || "-"} {selectedRegistro.parrillero_apellido || ""}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400">Cedula del parrillero</p>
+                        <p className="text-sm font-medium font-mono">{selectedRegistro.cedula_parrillero || "-"}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Datos de la Moto</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <p className="text-xs text-gray-400">Placa</p>
+                        <p className="text-sm font-medium font-mono">{selectedRegistro.placa}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400">Marca</p>
+                        <p className="text-sm font-medium">{selectedRegistro.moto_marca || "-"}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400">Anio</p>
+                        <p className="text-sm font-medium">{selectedRegistro.moto_anio || "-"}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400">Color</p>
+                        <p className="text-sm font-medium">{selectedRegistro.moto_color || "-"}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Solicitud</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-xs text-gray-400">Motivo</p>
+                        <p className="text-sm font-medium">{selectedRegistro.motivo}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400">Fecha de vencimiento</p>
+                        <p className="text-sm font-medium">{selectedRegistro.fecha_vencimiento?.replace("T", " ").slice(0, 19) || "Sin asignar"}</p>
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <p className="text-xs text-gray-400">Descripcion</p>
+                      <p className="text-sm font-medium whitespace-pre-wrap">{selectedRegistro.descripcion || "Sin descripcion"}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="border-t px-6 py-4 flex justify-end gap-2">
+                  {selectedRegistro.estado === "PENDIENTE" && (
+                    <>
+                      <button
+                        onClick={() => { handleEstado(selectedRegistro.id, "VIGENTE"); setSelectedRegistro(null); }}
+                        className="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700"
+                      >
+                        Aprobar
+                      </button>
+                      <button
+                        onClick={() => { handleEstado(selectedRegistro.id, "RECHAZADO"); setSelectedRegistro(null); }}
+                        className="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700"
+                      >
+                        Rechazar
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => setSelectedRegistro(null)}
+                    className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-300"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
